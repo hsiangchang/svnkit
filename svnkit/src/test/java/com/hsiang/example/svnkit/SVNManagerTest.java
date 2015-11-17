@@ -1,7 +1,12 @@
 package com.hsiang.example.svnkit;
 
+import java.util.Date;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNLogEntry;
 
 public class SVNManagerTest {
 
@@ -11,8 +16,26 @@ public class SVNManagerTest {
     @Test
     public void testLogin() {
         SVNManager svnManager = new SVNManager();
-        boolean isSuccess = svnManager.login("https://192.168.1.1/svn", "demo", "123456");
+        boolean isSuccess = svnManager.createSession("http://192.168.0.1/svn/", "username", "password");
         Assert.assertEquals(Boolean.TRUE, isSuccess);
+        svnManager.closeSession();
     }
 
+    @Test
+    public void testGetLogs() {
+        SVNManager svnManager = new SVNManager();
+        svnManager.createSession("http://192.168.0.1/svn/", "username", "password");
+        try {
+            List<SVNLogEntry> logs = svnManager.getLogs(new Date());
+            logs.forEach(
+                log -> {
+                    System.out.println(log.getRevision());    
+                }
+            );
+        } catch (SVNException e) {
+            Assert.fail();
+        }
+        svnManager.closeSession();
+    }
+    
 }

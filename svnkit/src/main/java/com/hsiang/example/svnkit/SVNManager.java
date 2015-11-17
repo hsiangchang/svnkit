@@ -1,5 +1,11 @@
 package com.hsiang.example.svnkit;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNLogEntry;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.io.SVNRepository;
@@ -22,14 +28,14 @@ public class SVNManager {
      * @param password 密碼
      * @return boolean
      */
-    public boolean login(String url, String username, String password) {
+    public boolean createSession(String url, String username, String password) {
         try {
             // 設定儲存庫位址
             repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
 
             // 設定儲存庫的帳號及密碼
-            ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(username,
-                    password.toCharArray());
+            ISVNAuthenticationManager authManager = 
+                SVNWCUtil.createDefaultAuthenticationManager(username, password.toCharArray());
             repository.setAuthenticationManager(authManager);
 
             //嘗試連線，測試是否成功
@@ -39,7 +45,39 @@ public class SVNManager {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    /**
+     * 取得指定日期的相關異動
+     * @param date
+     * @return
+     * @throws SVNException
+     */
+    @SuppressWarnings("unchecked")
+    public List<SVNLogEntry> getLogs(Date date) throws SVNException {
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.setTime(date);
+        yesterday.set(Calendar.HOUR_OF_DAY, 0);
+        yesterday.set(Calendar.MINUTE, 0);
+        yesterday.set(Calendar.SECOND, 0);
+        
+        Calendar inDate = Calendar.getInstance();
+        inDate.setTime(date);
+        inDate.set(Calendar.HOUR_OF_DAY, 23);
+        inDate.set(Calendar.MINUTE, 59);
+        inDate.set(Calendar.SECOND, 59);
+        
+        long startRevision = repository.getDatedRevision(yesterday.getTime()) + 1;
+        long endRevision = repository.getDatedRevision(inDate.getTime());
 
+        return (List<SVNLogEntry>) repository.log(new String[] { "" }, null, startRevision, endRevision, true, true);
+    }
+    
+    /**
+     * 
+     */
+    public void closeSession() {
+        repository.closeSession();
     }
 
 }
