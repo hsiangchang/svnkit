@@ -1,5 +1,6 @@
 package com.hsiang.example.svnkit;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -53,23 +54,62 @@ public class SVNManager {
      * @return
      * @throws SVNException
      */
-    @SuppressWarnings("unchecked")
     public List<SVNLogEntry> getLogs(Date date) throws SVNException {
+        return getLogs(date, date);
+    }
+    
+    /**
+     * 取得指定日期、異動人員的相關異動歷程
+     * @param date
+     * @return
+     * @throws SVNException
+     */
+    public List<SVNLogEntry> getLogs(Date date, String author) throws SVNException {
+        return getLogs(date, date, author);
+    }
+    
+    /**
+     * 取得指定日期區間、異動人員的相關異動
+     * @param beginDate
+     * @param endDate
+     * @return
+     * @throws SVNException
+     */
+    public List<SVNLogEntry> getLogs(Date beginDate, Date endDate, String author) throws SVNException {
+        List<SVNLogEntry> result = new ArrayList<SVNLogEntry>();
+        List<SVNLogEntry> logs = getLogs(beginDate, endDate);
+        logs.forEach(log->{
+            if(log.getAuthor().equalsIgnoreCase(author)) {
+                result.add(log);
+            }
+        });
+        return result;
+    }
+    
+    /**
+     * 取得指定日期區間的相關異動
+     * @param beginDate
+     * @param endDate
+     * @return
+     * @throws SVNException
+     */
+    @SuppressWarnings("unchecked")
+    public List<SVNLogEntry> getLogs(Date beginDate, Date endDate) throws SVNException {
         Calendar yesterday = Calendar.getInstance();
-        yesterday.setTime(date);
+        yesterday.setTime(beginDate);
         yesterday.set(Calendar.HOUR_OF_DAY, 0);
         yesterday.set(Calendar.MINUTE, 0);
         yesterday.set(Calendar.SECOND, 0);
         
         Calendar inDate = Calendar.getInstance();
-        inDate.setTime(date);
+        inDate.setTime(endDate);
         inDate.set(Calendar.HOUR_OF_DAY, 23);
         inDate.set(Calendar.MINUTE, 59);
         inDate.set(Calendar.SECOND, 59);
         
         long startRevision = repository.getDatedRevision(yesterday.getTime()) + 1;
         long endRevision = repository.getDatedRevision(inDate.getTime());
-
+        
         return (List<SVNLogEntry>) repository.log(new String[] { "" }, null, startRevision, endRevision, true, true);
     }
     
