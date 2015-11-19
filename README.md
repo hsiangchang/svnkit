@@ -1,3 +1,3 @@
-【範例實作】操作 SVN 的相關 API
+Example for SVNKit API
 
-1. 建立連線 SVN ：2015/11/19
+1. Create Session called SVN
